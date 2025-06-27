@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ระบบแจ้งผลการเรียนออนไลน์</title>
+    <style>
+      body {
+        font-family: "Tahoma", sans-serif;
+        background-color: #ffffff;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+        background-color: white;
+        padding: 20px 20px;
+        margin-top: 60px;
+        border-radius: 10px;
+      }
+      h1 {
+        color: #c62828;
+      }
+      p.subtitle {
+        color: #555;
+        font-size: 16px;
+        margin-top: -10px;
+      }
+      input {
+        width: 80%;
+        padding: 12px;
+        margin: 10px 0;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+      }
+      .btn {
+        padding: 12px 24px;
+        font-size: 16px;
+        margin: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .btn-login {
+        background-color: #1e88e5;
+        color: white;
+      }
+      .btn-guide {
+        background-color: #ffca28;
+        color: black;
+      }
+      .result {
+        margin-top: 30px;
+        font-size: 16px;
+        text-align: left;
+        padding: 20px;
+        background: #f0f4f8;
+        border-radius: 10px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      footer {
+        font-size: 13px;
+        margin-top: 30px;
+        color: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <img
+        src="https://www.obec.go.th/wp-content/uploads/2023/12/logo_obec_color_4cm.jpg"
+        alt="โลโก้"
+        height="120" />
+      <h1>ระบบแจ้งผลการเรียนออนไลน์</h1>
+      <p class="subtitle">โรงเรียนบ้านห้วยปอ ปีการศึกษา 2567</p>
+
+      <input
+        id="inputID"
+        type="text"
+        placeholder="รหัสนักเรียน หรือ เลขบัตรประชาชน" />
+      <input
+        id="inputDOB"
+        type="text"
+        placeholder="วันเดือนปีเกิด (เช่น 24/07/2562)" />
+      <br />
+      <button class="btn btn-login" onclick="checkStudent()">
+        เข้าสู่ระบบ
+      </button>
+      <button class="btn btn-guide">คู่มือใช้งาน</button>
+
+      <div id="result" class="result"></div>
+
+      <footer>
+        ออกแบบและพัฒนาโดย กลุ่มงานเทคโนโลยีสารสนเทศ<br />
+        สำนักงานเขตพื้นที่การศึกษามัธยมศึกษา เขต 1
+      </footer>
+    </div>
+
+    <script>
+      let students = [];
+
+      // โหลด students_full.json
+      fetch("students_full.json")
+        .then((res) => res.json())
+        .then((data) => (students = data))
+        .catch((err) => console.error("โหลดข้อมูลไม่สำเร็จ:", err));
+
+      function renderStats() {
+        return `
+            <h3>📈 สถิติจำนวนผู้ใช้ระบบ</h3>
+            <table>
+              <tr><td>👨‍💻 ขณะนี้ออนไลน์</td><td>: 1 คน</td></tr>
+              <tr><td>✅ วันนี้</td><td>: 5 คน</td></tr>
+              <tr><td>📅 เมื่อวาน</td><td>: 12 คน</td></tr>
+              <tr><td>📆 สัปดาห์นี้</td><td>: 34 คน</td></tr>
+              <tr><td>📆 เดือนนี้</td><td>: 5 คน</td></tr>
+              <tr><td>📆 ปีนี้</td><td>: 5 คน</td></tr>
+              <tr><td>📊 รวมทั้งหมด</td><td>: 5 คน</td></tr>
+            </table>
+          `;
+      }
+
+      // ใส่สถิติตั้งแต่โหลดหน้า
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("result").innerHTML = renderStats();
+      });
+
+      function checkStudent() {
+        const id = document.getElementById("inputID").value.trim();
+        const dob = document.getElementById("inputDOB").value.trim();
+        const result = document.getElementById("result");
+
+        const student = students.find(
+          (s) =>
+            (s.student_id === id ||
+              s.citizen_id === id ||
+              s.citizen_id?.replace(/-/g, "") === id) &&
+            s.dob === dob
+        );
+
+        if (student) {
+          result.innerHTML = `
+              <h3>📋 ผลการตรวจสอบ</h3>
+              <p>👦 ชื่อ: ${student.name}</p>
+              <p>🆔 รหัสนักเรียน: ${student.student_id}</p>
+              <p>🪪 บัตรประชาชน: ${student.citizen_id}</p>
+              <p>🏫 ชั้นเรียน: ${student.class}</p>
+              <p>🎂 วันเกิด: ${student.dob}</p>
+              <p>👨‍👩‍👧 ผู้ปกครอง: ${student.father} & ${student.mother}</p>
+              <p>📍 ที่อยู่: ${student.address}</p>
+            `;
+          result.style.color = "black";
+        } else {
+          result.innerHTML =
+            "<p style='color:red;'>❌ ไม่พบนักเรียน กรุณาตรวจสอบข้อมูลอีกครั้ง</p>";
+        }
+      }
+    </script>
+  </body>
+</html>
